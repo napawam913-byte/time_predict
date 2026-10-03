@@ -23,8 +23,10 @@ related_work/**/source/
 
 # Re-fetchable official code and local experiment outputs
 reproduction/02_autoformer_official/upstream/
+reproduction/03_patchtst_official/upstream/
 reproduction/**/runs/
 reproduction/02_autoformer_official/comparison/
+reproduction/03_patchtst_official/comparison/
 
 # Local Codex bookkeeping
 .agents/

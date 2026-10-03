@@ -1,0 +1,7 @@
+{
+  "repository": "https://github.com/yuqinie98/PatchTST.git",
+  "commit": "204c21efe0b39603ad6e2ca640ef5896646ab1a9",
+  "paper": "Nie et al., A Time Series is Worth 64 Words: Long-term Forecasting with Transformers, ICLR 2023",
+  "entrypoint": "PatchTST_supervised/run_longExp.py",
+  "retrieved_for_plan": "2026-10-03"
+}

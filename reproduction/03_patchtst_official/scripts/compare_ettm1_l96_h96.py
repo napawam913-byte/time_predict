@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create a label-verified MSE comparison for ETTm1 96 -> 96 runs."""
+"""Create a label-verified ETTm1 96 -> 96 PatchTST comparison."""
 
 from __future__ import annotations
 
@@ -12,22 +12,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-COMMON_SOURCE = PROJECT_ROOT / "reproduction" / "common"
-if str(COMMON_SOURCE) not in sys.path:
-    sys.path.insert(0, str(COMMON_SOURCE))
 
-from autoformer_reproduction.evaluation import (
-    TrainingScaler,
-    evaluate_models,
-    load_baseline_result,
-    load_official_result,
-)
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+for source in (
+    PROJECT_ROOT / "reproduction" / "common",
+    PROJECT_ROOT / "reproduction" / "03_patchtst_official" / "src",
+):
+    if str(source) not in sys.path:
+        sys.path.insert(0, str(source))
+
+from ltsf_evaluation import TrainingScaler, load_normalized_archive
+from patchtst_reproduction.evaluation import evaluate_models, load_patchtst_result
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--autoformer-run", type=Path, required=True)
+    parser.add_argument("--patchtst-run", type=Path, required=True)
     parser.add_argument("--seasonal-naive", type=Path, required=True)
     parser.add_argument("--dlinear", type=Path, required=True)
     parser.add_argument("--csv", type=Path, required=True)
@@ -43,22 +43,24 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     scaler = TrainingScaler.from_csv(args.csv, train_end=args.train_end)
-    official = load_official_result(args.autoformer_run)
-    seasonal_naive, seasonal_columns = load_baseline_result(args.seasonal_naive)
-    dlinear, dlinear_columns = load_baseline_result(args.dlinear)
+    patchtst, patchtst_columns = load_patchtst_result(args.patchtst_run)
+    seasonal_naive, seasonal_columns = load_normalized_archive(args.seasonal_naive)
+    dlinear, dlinear_columns = load_normalized_archive(args.dlinear)
+    if patchtst_columns != scaler.columns:
+        raise ValueError("PatchTST column order does not match the ETTm1 CSV")
     if seasonal_columns != scaler.columns or dlinear_columns != scaler.columns:
         raise ValueError("baseline column order does not match the ETTm1 CSV")
     if args.variable not in scaler.columns:
         raise ValueError(f"unknown plotting variable: {args.variable}")
 
     models = evaluate_models(
-        official,
+        patchtst,
         {"Seasonal Naive": seasonal_naive, "DLinear": dlinear},
         scaler,
         scaler.columns,
     )
-    if not 0 <= args.window_index < official.target.shape[0]:
-        raise ValueError(f"window index is outside [0, {official.target.shape[0]})")
+    if not 0 <= args.window_index < patchtst.target.shape[0]:
+        raise ValueError(f"window index is outside [0, {patchtst.target.shape[0]})")
 
     payload = {
         "protocol": {
@@ -66,37 +68,42 @@ def main() -> None:
             "train_end": args.train_end,
             "test_start": args.test_start,
             "input_length": args.input_length,
-            "prediction_length": int(official.target.shape[1]),
+            "prediction_length": int(patchtst.target.shape[1]),
+            "patch_length": 16,
+            "stride": 8,
+            "patch_count": 12,
             "columns": scaler.columns,
         },
         "alignment": {
             "passed": True,
-            "shape": list(official.target.shape),
+            "shape": list(patchtst.target.shape),
             "compared_against": ["Seasonal Naive", "DLinear"],
         },
         "models": models,
         "limitations": [
-            "This is an initial single-run comparison; DLinear uses seed 2026 and Autoformer uses the authors' fixed seed 2021.",
+            "This is an initial single-run comparison; PatchTST uses the authors' fixed seed 2021.",
+            "PatchTST's paper-table configuration uses L=336, whereas this project comparison fixes L=96 for fairness with existing baselines.",
             "A plotted test window is qualitative; global test-set metrics determine the table.",
         ],
     }
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    metrics_json = args.output_dir / "ettm1_l96_h96_initial_metrics.json"
-    metrics_markdown = args.output_dir / "ettm1_l96_h96_initial_metrics.md"
-    plot_path = args.output_dir / "ettm1_l96_h96_initial_prediction.png"
-    metrics_json.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    metrics_markdown.write_text(_metrics_markdown(payload, scaler.columns), encoding="utf-8")
+    (args.output_dir / "ettm1_l96_h96_initial_metrics.json").write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+    (args.output_dir / "ettm1_l96_h96_initial_metrics.md").write_text(
+        _metrics_markdown(payload, scaler.columns), encoding="utf-8"
+    )
     _plot_window(
         args.csv,
         scaler,
-        official,
+        patchtst,
         seasonal_naive,
         dlinear,
         args.test_start,
         args.input_length,
         args.window_index,
         args.variable,
-        plot_path,
+        args.output_dir / "ettm1_l96_h96_initial_prediction.png",
     )
 
 
@@ -138,7 +145,7 @@ def _metrics_markdown(payload: dict[str, object], columns: list[str]) -> str:
 def _plot_window(
     csv_path: Path,
     scaler: TrainingScaler,
-    official,
+    patchtst,
     seasonal_naive,
     dlinear,
     test_start: int,
@@ -152,17 +159,17 @@ def _plot_window(
     variable_index = scaler.columns.index(variable)
     target_start = test_start + window_index
     history = values[target_start - input_length : target_start, variable_index]
-    actual = seasonal_naive.target[window_index, :, variable_index]
-    autoformer_prediction = scaler.denormalize(official.prediction)[window_index, :, variable_index]
-    seasonal_prediction = seasonal_naive.prediction[window_index, :, variable_index]
-    dlinear_prediction = dlinear.prediction[window_index, :, variable_index]
+    actual = scaler.denormalize(patchtst.target)[window_index, :, variable_index]
+    patchtst_prediction = scaler.denormalize(patchtst.prediction)[window_index, :, variable_index]
+    seasonal_prediction = scaler.denormalize(seasonal_naive.prediction)[window_index, :, variable_index]
+    dlinear_prediction = scaler.denormalize(dlinear.prediction)[window_index, :, variable_index]
     horizon = len(actual)
 
     figure, axis = plt.subplots(figsize=(10, 4))
     axis.plot(np.arange(input_length), history, label="Observed history", color="black")
     future_x = np.arange(input_length, input_length + horizon)
     axis.plot(future_x, actual, label="Ground truth", color="tab:red")
-    axis.plot(future_x, autoformer_prediction, label="Autoformer", color="tab:blue")
+    axis.plot(future_x, patchtst_prediction, label="PatchTST", color="tab:blue")
     axis.plot(future_x, seasonal_prediction, label="Seasonal Naive", color="tab:green")
     axis.plot(future_x, dlinear_prediction, label="DLinear", color="tab:purple")
     axis.axvline(input_length - 0.5, color="gray", linestyle="--", linewidth=1)
