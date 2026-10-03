@@ -1,0 +1,18 @@
+{
+  "dataset_path": "../../../DataSet/ETTm1/ETTm1.csv",
+  "input_length": 96,
+  "prediction_length": 96,
+  "seed": 2026,
+  "model": {
+    "name": "seasonal_naive",
+    "period": 96,
+    "individual": false,
+    "moving_average_window": 25
+  },
+  "training": {
+    "batch_size": 32,
+    "learning_rate": 0.001,
+    "max_epochs": 20,
+    "patience": 3
+  }
+}

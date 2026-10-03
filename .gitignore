@@ -1,0 +1,32 @@
+# Python environments and interpreter caches
+.venv/
+**/.venv/
+__pycache__/
+**/__pycache__/
+.pytest_cache/
+**/.pytest_cache/
+*.py[cod]
+**/.tools/
+
+# Local package and plotting caches
+.pip-cache/
+**/.pip-cache/
+.mplconfig/
+**/.mplconfig/
+**/matplotlib-cache/
+**/pip-cache/
+
+# Raw data and immutable third-party source material
+DataSet/ETTm1/ETTm1.csv
+related_work/**/paper.pdf
+related_work/**/source/
+
+# Re-fetchable official code and local experiment outputs
+reproduction/02_autoformer_official/upstream/
+reproduction/**/runs/
+reproduction/02_autoformer_official/comparison/
+
+# Local Codex bookkeeping
+.agents/
+.codex/
+.superpowers/

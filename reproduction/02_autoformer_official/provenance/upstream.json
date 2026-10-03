@@ -1,0 +1,9 @@
+{
+  "repository_url": "https://github.com/thuml/Autoformer",
+  "commit": "51c7d416ae120b805fd5beef2f4ccf7de496a6ff",
+  "source_clean": true,
+  "requirements_sha256": "2f35f5f76f11326874f7d58994ca092e74df6b53c212b722103690ef6f972cd8",
+  "dataset_path": "/home/xc_ubantu/homelab/projects/time_predict/DataSet/ETTm1/ETTm1.csv",
+  "dataset_sha256": "6ce1759b1a18e3328421d5d75fadcb316c449fcd7cec32820c8dafda71986c9e",
+  "captured_at_utc": "2026-10-03T06:30:36.997556+00:00"
+}
