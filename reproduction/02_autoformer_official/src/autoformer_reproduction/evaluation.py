@@ -91,7 +91,7 @@ def load_official_result(run_dir: str | Path) -> ForecastResult:
 
 
 def load_baseline_result(npz_path: str | Path) -> tuple[ForecastResult, list[str]]:
-    """Load original-scale predictions produced by the existing baseline runner."""
+    """Load normalized predictions produced by the existing baseline runner."""
 
     npz_path = Path(npz_path)
     if not npz_path.is_file():
@@ -101,7 +101,7 @@ def load_baseline_result(npz_path: str | Path) -> tuple[ForecastResult, list[str
         missing = required.difference(archive.files)
         if missing:
             raise ValueError(f"baseline archive is missing arrays: {sorted(missing)}")
-        result = ForecastResult(archive["prediction"], archive["target"], "original_scale")
+        result = ForecastResult(archive["prediction"], archive["target"], "normalized")
         columns = [str(column) for column in archive["columns"].tolist()]
     if len(columns) != result.target.shape[-1]:
         raise ValueError("baseline column count does not match prediction channels")

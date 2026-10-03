@@ -68,6 +68,30 @@ def test_label_alignment_rejects_a_single_mismatched_target_value(tmp_path: Path
         assert_aligned_labels(official, {"DLinear": shifted_baseline}, scaler)
 
 
+def test_baseline_archive_normalized_targets_align_with_official_targets(tmp_path: Path) -> None:
+    """Baseline archives store the normalized windows consumed by their models.
+
+    This fails if their payload is treated as raw data and normalized a second time.
+    """
+
+    csv_path = tmp_path / "ETTm1.csv"
+    _write_csv(csv_path)
+    scaler = TrainingScaler.from_csv(csv_path, train_end=2)
+    normalized_target = np.array([[[1.0, 1.0]]])
+    baseline_path = tmp_path / "baseline.npz"
+    np.savez_compressed(
+        baseline_path,
+        prediction=normalized_target,
+        target=normalized_target,
+        columns=np.array(["HUFL", "OT"]),
+    )
+
+    baseline, _ = load_baseline_result(baseline_path)
+    official = ForecastResult(normalized_target, normalized_target, "normalized")
+
+    assert_aligned_labels(official, {"DLinear": baseline}, scaler)
+
+
 def test_loaders_reject_ambiguous_official_results_and_preserve_baseline_columns(tmp_path: Path) -> None:
     """Result discovery cannot silently select an arbitrary author output folder."""
 
@@ -89,5 +113,5 @@ def test_loaders_reject_ambiguous_official_results_and_preserve_baseline_columns
         columns=np.array(["HUFL", "OT"]),
     )
     result, columns = load_baseline_result(baseline_path)
-    assert result.scale == "original_scale"
+    assert result.scale == "normalized"
     assert columns == ["HUFL", "OT"]

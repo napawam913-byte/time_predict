@@ -29,8 +29,8 @@ def _write_inputs(tmp_path: Path, mismatch: bool = False) -> tuple[Path, Path, P
     official_dir.mkdir(parents=True)
     np.save(official_dir / "true.npy", np.array([[[1.0, 3.0]]]))
     np.save(official_dir / "pred.npy", np.array([[[2.0, 2.0]]]))
-    target = np.array([[[3.0, 50.0 + (1.0 if mismatch else 0.0)]]])
-    prediction = np.array([[[4.0, 40.0]]])
+    target = np.array([[[1.0, 3.0 + (0.1 if mismatch else 0.0)]]])
+    prediction = np.array([[[2.0, 2.0]]])
     seasonal = tmp_path / "seasonal.npz"
     dlinear = tmp_path / "dlinear.npz"
     for path in (seasonal, dlinear):
