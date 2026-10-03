@@ -14,8 +14,10 @@
 ```bash
 git clone <你的 GitHub 仓库地址>
 cd time_predict
+mkdir -p DataSet/ETTm1
 curl -L --fail --output DataSet/ETTm1/ETTm1.csv \
   https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETT-small/ETTm1.csv
+echo '6ce1759b1a18e3328421d5d75fadcb316c449fcd7cec32820c8dafda71986c9e  DataSet/ETTm1/ETTm1.csv' | sha256sum -c -
 bash reproduction/02_autoformer_official/scripts/fetch_upstream.sh
 ```
 

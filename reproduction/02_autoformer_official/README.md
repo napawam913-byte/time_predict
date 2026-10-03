@@ -25,8 +25,10 @@ bash scripts/verify_upstream.sh
 
 ```bash
 # 项目根目录：先取得数据和固定的作者源码
+mkdir -p DataSet/ETTm1
 curl -L --fail --output DataSet/ETTm1/ETTm1.csv \
   https://raw.githubusercontent.com/zhouhaoyi/ETDataset/main/ETT-small/ETTm1.csv
+echo '6ce1759b1a18e3328421d5d75fadcb316c449fcd7cec32820c8dafda71986c9e  DataSet/ETTm1/ETTm1.csv' | sha256sum -c -
 bash reproduction/02_autoformer_official/scripts/fetch_upstream.sh
 
 # 用 nvidia-smi 确认 GPU；本例安装 CUDA 12.1 对应的 PyTorch 2.5.1 wheel
