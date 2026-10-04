@@ -7,6 +7,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 SCRIPTS = PROJECT_ROOT / "reproduction" / "03_patchtst_official" / "scripts"
+REQUIREMENTS = PROJECT_ROOT / "reproduction" / "03_patchtst_official" / "requirements.common.txt"
 
 
 def _script(name: str) -> str:
@@ -57,3 +58,10 @@ def test_cpu_smoke_launcher_can_use_an_existing_compatible_python_environment() 
 
     source = _script("run_smoke_cpu.sh")
     assert "PATCHTST_PYTHON" in source
+
+
+def test_common_requirements_keep_numpy_below_2_for_the_immutable_upstream() -> None:
+    """The pinned official source calls ``np.Inf``, removed by NumPy 2.0."""
+
+    requirements = REQUIREMENTS.read_text(encoding="utf-8")
+    assert "numpy>=1.24,<2" in requirements
