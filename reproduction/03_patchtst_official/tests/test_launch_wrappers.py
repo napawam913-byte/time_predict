@@ -23,6 +23,7 @@ def test_common_launcher_fixes_the_fair_ettm1_patchtst_protocol_and_isolates_run
     for required in (
         "--random_seed 2021",
         "--features M",
+        "--freq t",
         "--seq_len 96",
         "--pred_len 96",
         "--enc_in 7",

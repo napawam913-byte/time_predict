@@ -119,6 +119,7 @@ run_author_experiment() {
     --model PatchTST
     --data ETTm1
     --features M
+    --freq t
     --seq_len 96
     --label_len 48
     --pred_len 96
