@@ -65,3 +65,6 @@ def test_operator_readme_documents_the_cloud_sequence_and_frequency_boundary() -
         assert command in source
     assert "freq=h" in source
     assert "15 分钟" in source
+    assert "assert archive_shape == (11425, 96, 7)" in source
+    assert 'assert comparison_json["alignment"]["passed"] is True' in source
+    assert 'assert "single-run" in comparison_json["limitations"][0]' in source

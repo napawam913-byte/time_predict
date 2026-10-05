@@ -57,3 +57,15 @@ reproduction/04_timesnet_official/scripts/compare_ettm1_l96_h96.py \
 ```
 
 输出包括 JSON、Markdown 指标表和一个原始尺度的定性测试窗口图。不要直接比较作者日志中的单一打印指标。
+
+## 云端结果发布核对
+
+完成训练与比较后，先从生成的归档和 JSON 读取值，再手工执行以下核对；未通过时不要记录或解释模型指标：
+
+```python
+assert archive_shape == (11425, 96, 7)
+assert comparison_json["alignment"]["passed"] is True
+assert "single-run" in comparison_json["limitations"][0]
+```
+
+这轮仅是一个固定作者种子、`L=96 → H=96` 的初步比较。确认后再把实际运行名、环境、指标和限制追加到项目研究记录，不能使用预期数值或论文表格数值替代真实结果。
