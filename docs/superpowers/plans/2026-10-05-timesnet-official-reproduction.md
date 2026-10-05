@@ -159,7 +159,7 @@ Expected: tests PASS; smoke prints a B×96×7 forecast plus author-FFT period/gr
 **Files:**
 - Create: reproduction/04_timesnet_official/src/timesnet_reproduction/export.py
 - Create: reproduction/04_timesnet_official/scripts/export_ettm1_predictions.py
-- Create: reproduction/04_timesnet_official/tests/test_export_contract.py
+- Create: reproduction/04_timesnet_official/tests/test_timesnet_export_contract.py
 
 **Interfaces:**
 - Consumes: one author run containing checkpoints/<setting>/checkpoint.pth and results/<setting>/pred.npy, true.npy; ETTm1 CSV with a date column.
@@ -180,7 +180,7 @@ Expected: tests PASS; smoke prints a B×96×7 forecast plus author-FFT period/gr
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: PYTHONPATH=reproduction/common:reproduction/04_timesnet_official/src pytest -q reproduction/04_timesnet_official/tests/test_export_contract.py
+Run: PYTHONPATH=reproduction/common:reproduction/04_timesnet_official/src pytest -q reproduction/04_timesnet_official/tests/test_timesnet_export_contract.py
 
 Expected: FAIL because the exporter does not exist.
 
@@ -196,7 +196,7 @@ Expected: PASS, including the incomplete-tail rejection.
 
 - [ ] **Step 5: Commit**
 
-    git add reproduction/04_timesnet_official/src/timesnet_reproduction/export.py reproduction/04_timesnet_official/scripts/export_ettm1_predictions.py reproduction/04_timesnet_official/tests/test_export_contract.py
+    git add reproduction/04_timesnet_official/src/timesnet_reproduction/export.py reproduction/04_timesnet_official/scripts/export_ettm1_predictions.py reproduction/04_timesnet_official/tests/test_timesnet_export_contract.py
     git commit -m "feat: export TimesNet official predictions"
 
 ### Task 4: Isolated official GPU launcher
@@ -204,7 +204,7 @@ Expected: PASS, including the incomplete-tail rejection.
 **Files:**
 - Create: reproduction/04_timesnet_official/scripts/run_common.sh
 - Create: reproduction/04_timesnet_official/scripts/run_official_ettm1_96_96_gpu.sh
-- Create: reproduction/04_timesnet_official/tests/test_launch_wrappers.py
+- Create: reproduction/04_timesnet_official/tests/test_timesnet_launch_wrappers.py
 - Create: reproduction/04_timesnet_official/README.md
 
 **Interfaces:**
@@ -225,7 +225,7 @@ Expected: PASS, including the incomplete-tail rejection.
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: PYTHONPATH=reproduction/04_timesnet_official/src pytest -q reproduction/04_timesnet_official/tests/test_launch_wrappers.py
+Run: PYTHONPATH=reproduction/04_timesnet_official/src pytest -q reproduction/04_timesnet_official/tests/test_timesnet_launch_wrappers.py
 
 Expected: FAIL because launchers do not exist.
 
@@ -237,7 +237,7 @@ The GPU entry point checks CUDA with its chosen interpreter and calls run_author
 
 - [ ] **Step 4: Run tests and non-training validation**
 
-Run: PYTHONPATH=reproduction/04_timesnet_official/src pytest -q reproduction/04_timesnet_official/tests/test_launch_wrappers.py
+Run: PYTHONPATH=reproduction/04_timesnet_official/src pytest -q reproduction/04_timesnet_official/tests/test_timesnet_launch_wrappers.py
 
 Then run:
     bash reproduction/04_timesnet_official/scripts/verify_upstream.sh
@@ -246,7 +246,7 @@ Expected: PASS; verifier prints pinned commit; no GPU training starts.
 
 - [ ] **Step 5: Commit**
 
-    git add reproduction/04_timesnet_official/scripts/run_common.sh reproduction/04_timesnet_official/scripts/run_official_ettm1_96_96_gpu.sh reproduction/04_timesnet_official/tests/test_launch_wrappers.py reproduction/04_timesnet_official/README.md
+    git add reproduction/04_timesnet_official/scripts/run_common.sh reproduction/04_timesnet_official/scripts/run_official_ettm1_96_96_gpu.sh reproduction/04_timesnet_official/tests/test_timesnet_launch_wrappers.py reproduction/04_timesnet_official/README.md
     git commit -m "feat: add TimesNet official GPU launcher"
 
 ### Task 5: Label-verified TimesNet comparison and regression suite
@@ -254,7 +254,7 @@ Expected: PASS; verifier prints pinned commit; no GPU training starts.
 **Files:**
 - Create: reproduction/04_timesnet_official/src/timesnet_reproduction/evaluation.py
 - Create: reproduction/04_timesnet_official/scripts/compare_ettm1_l96_h96.py
-- Create: reproduction/04_timesnet_official/tests/test_comparison_cli.py
+- Create: reproduction/04_timesnet_official/tests/test_timesnet_comparison_cli.py
 - Modify: reproduction/04_timesnet_official/README.md
 
 **Interfaces:**
@@ -273,7 +273,7 @@ Expected: PASS; verifier prints pinned commit; no GPU training starts.
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: PYTHONPATH=reproduction/common:reproduction/04_timesnet_official/src pytest -q reproduction/04_timesnet_official/tests/test_comparison_cli.py
+Run: PYTHONPATH=reproduction/common:reproduction/04_timesnet_official/src pytest -q reproduction/04_timesnet_official/tests/test_timesnet_comparison_cli.py
 
 Expected: FAIL because evaluator and CLI do not exist.
 
@@ -292,7 +292,7 @@ Expected: PASS; prior Autoformer/PatchTST tests stay green.
 
 - [ ] **Step 5: Commit**
 
-    git add reproduction/04_timesnet_official/src/timesnet_reproduction/evaluation.py reproduction/04_timesnet_official/scripts/compare_ettm1_l96_h96.py reproduction/04_timesnet_official/tests/test_comparison_cli.py reproduction/04_timesnet_official/README.md
+    git add reproduction/04_timesnet_official/src/timesnet_reproduction/evaluation.py reproduction/04_timesnet_official/scripts/compare_ettm1_l96_h96.py reproduction/04_timesnet_official/tests/test_timesnet_comparison_cli.py reproduction/04_timesnet_official/README.md
     git commit -m "feat: compare aligned TimesNet forecasts"
 
 ### Task 6: Cloud run, verification, and research-record update
