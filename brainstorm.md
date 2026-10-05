@@ -13,3 +13,9 @@
 ## 2026-10-03：PatchTST 的下一项可证伪假设
 
 在相同 ETTm1 `L=96 → H=96`、相同测试标签与原始尺度指标下，监督版 PatchTST（`P=16, S=8`、通道独立、共享权重）若优于 DLinear，才能说明 patch token 在这一协议中提供了额外价值；若没有优势，不能直接否定 PatchTST，因为论文主要报告的是 `L=336`。下一项独立实验应让 DLinear、Autoformer 与 PatchTST 全部使用 `L=336`，将“patch 表示的作用”与“更长历史窗口的作用”分开。
+
+## 2026-10-05：PatchTST 首轮结果与下一项假设
+
+该假设在单次 ETTm1 `L=96 → H=96` 运行中得到初步支持：PatchTST 的全局原始尺度 MSE 为 `6.401452`，优于 DLinear `7.320728`（12.56%）与 Seasonal Naive `7.994722`（19.93%），标签逐元素对齐的窗口数为 11425。优势并不在每一个变量上都成立：DLinear 在 HULL、MULL、LULL 三个较平稳通道的单变量 MSE 更低，而 PatchTST 在 HUFL、MUFL、LUFL、OT 上更低，尤其 OT 改善明显。
+
+下一项可证伪假设：若 PatchTST 的优势主要来自较强波动或跨周期模式通道，那么在统一 `L=336` 后，其相对 DLinear 的优势应在 HUFL、MUFL、OT 保持或扩大；若所有通道的优势都消失，则首轮改善可能是短窗口设置、单种子或训练配置造成，而非 patch 表示本身。
