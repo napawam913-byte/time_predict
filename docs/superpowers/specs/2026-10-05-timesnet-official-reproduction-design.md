@@ -109,7 +109,7 @@ ettm1_l96_h96_timesnet_seed2021_gpu_YYYYMMDD
 | 风险 | 防护 |
 | --- | --- |
 | 拉到了不同版本的作者代码 | 固定 commit；运行前验证远程、HEAD、工作树状态。 |
-| 依赖版本与旧代码不兼容 | 建立独立 `.venv`；CPU 冒烟先于 GPU 长训练；记录 Python、Torch、NumPy、CUDA 版本。 |
+| 依赖版本与旧代码不兼容 | 建立独立 `.venv`；CPU 冒烟先于 GPU 长训练；固定 NumPy 1.26.4，并以外部兼容层适配作者代码的 pandas 1.x 调用，绝不修改上游文件；记录 Python、Torch、NumPy、CUDA 版本。 |
 | 最后一个测试批次被丢弃 | 导出专用的同官方 Dataset DataLoader 必须 `drop_last=False`；测试检查完整 `11425` 样本。 |
 | 看似比较、实际标签不同 | 比较器对形状和反标准化后的标签逐元素检查，任一差异立即失败。 |
 | FFT 或周期选择偷看预测未来 | 只从每个输入历史窗口读取观测；不向 TimesNet 前向输入未来目标。 |

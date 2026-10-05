@@ -6,7 +6,7 @@
 
 **Architecture:** Keep the 2023-03-31 author TSLib commit as an immutable upstream clone. Version-control only a thin shell for source verification, environment creation, run isolation, archive export, period observation, and shared evaluation; never copy or modify models/TimesNet.py or the author training classes. The author run.py creates checkpoints and pred.npy/true.npy; the shell validates and packages those unchanged normalized arrays into the existing shared evaluation contract.
 
-**Tech Stack:** Bash, Python 3.10-compatible virtual environment, PyTorch 2.5.1, NumPy 1.26.4, pandas 1.5.3, pytest, matplotlib, the existing reproduction/common/ltsf_evaluation package, and the author TSLib code at commit 2665a3143dae12d1cbcc31ddd396bbff48773bce.
+**Tech Stack:** Bash, Python 3.12-compatible virtual environment, PyTorch 2.5.1, NumPy 1.26.4, pandas 2.3.3 plus a narrowly scoped external legacy-API shim, pytest, matplotlib, the existing reproduction/common/ltsf_evaluation package, and the author TSLib code at commit 2665a3143dae12d1cbcc31ddd396bbff48773bce.
 
 **Spec:** docs/superpowers/specs/2026-10-05-timesnet-official-reproduction-design.md
 
@@ -23,7 +23,7 @@
 ## Review Focus
 
 - Stale or wrong upstream: Task 1 tests the fetcher, provenance, exact TSLib URL/commit, and dirty/wrong clone rejection.
-- Old-source runtime compatibility: Task 2 tests the advertised torch, NumPy <2, pandas <2 environment and smokes the real author model.
+- Old-source runtime compatibility: Task 2 pins NumPy <2, uses an external pandas positional-axis compatibility shim, and smokes the real author model without modifying author files.
 - Partial or mismatched author outputs: Task 3 rejects zero, multiple, setting-mismatched, non-finite, or incomplete pred.npy/true.npy artifacts.
 - ETTm1 test-tail preservation: Task 3 verifies all 11,425 single-batch author windows are packaged.
 - Misleading cross-model metric: Task 5 rejects column-order, shape, and elementwise-label mismatch before rendering metrics.
@@ -102,10 +102,11 @@ Expected: PASS.
 - Create: reproduction/04_timesnet_official/scripts/create_cpu_env.sh
 - Create: reproduction/04_timesnet_official/scripts/create_gpu_env.sh
 - Create: reproduction/04_timesnet_official/scripts/run_smoke_cpu.sh
+- Create: reproduction/04_timesnet_official/compat/sitecustomize.py
 - Create: reproduction/04_timesnet_official/src/timesnet_reproduction/__init__.py
 - Create: reproduction/04_timesnet_official/src/timesnet_reproduction/observation.py
-- Create: reproduction/04_timesnet_official/tests/test_runtime_compat.py
-- Create: reproduction/04_timesnet_official/tests/test_period_observation.py
+- Create: reproduction/04_timesnet_official/tests/test_timesnet_runtime_compat.py
+- Create: reproduction/04_timesnet_official/tests/test_timesnet_period_observation.py
 
 **Interfaces:**
 - Consumes: verified upstream models.TimesNet.Model and models.TimesNet.FFT_for_Period; TIMESNET_PYTHON is an optional executable override.
@@ -117,7 +118,8 @@ Expected: PASS.
         requirements = REQUIREMENTS.read_text()
         assert "torch==2.5.1" in requirements
         assert "numpy==1.26.4" in requirements
-        assert "pandas==1.5.3" in requirements
+        assert "pandas==2.3.3" in requirements
+        assert "scipy==1.14.1" in requirements
 
     def test_observation_uses_author_fft_and_reports_period_grid(monkeypatch, tmp_path) -> None:
         observation = observe_periods(tmp_path, torch.randn(2, 192, 64), top_k=2)
@@ -126,19 +128,19 @@ Expected: PASS.
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: PYTHONPATH=reproduction/04_timesnet_official/src pytest -q reproduction/04_timesnet_official/tests/test_runtime_compat.py reproduction/04_timesnet_official/tests/test_period_observation.py
+Run: PYTHONPATH=reproduction/04_timesnet_official/src pytest -q reproduction/04_timesnet_official/tests/test_timesnet_runtime_compat.py reproduction/04_timesnet_official/tests/test_timesnet_period_observation.py
 
 Expected: FAIL because requirements and observation API do not exist.
 
 - [ ] **Step 3: Implement environment scripts and observation API**
 
-Pin the wrapper runtime to torch==2.5.1, numpy==1.26.4, pandas==1.5.3, scikit-learn==1.2.2, matplotlib==3.7.0, einops==0.4.0, scipy==1.10.1, sktime==0.16.1, and tqdm==4.64.1; require Python 3.10 or 3.11 with a clear error. CPU installs torch from the CPU index; GPU takes cu121 and installs matching torch. run_smoke_cpu.sh must use verified author Model for one B×96×7 forecast and print forecast_shape=(B, 96, 7), then call observe_periods on author TimesBlock-length data to print selected period/grid metadata.
+Pin the wrapper runtime to torch==2.5.1, numpy==1.26.4, pandas==2.3.3, scikit-learn==1.7.2, matplotlib==3.10.8, einops==0.8.2, scipy==1.14.1, sktime==1.2.0, reformer-pytorch==1.4.4, patool==1.12, and tqdm==4.67.1; use locally available Python 3.12. Because the 2023 author loader calls the pandas-1.x positional `DataFrame.drop(..., 1)` API, place a minimal external `compat/sitecustomize.py` shim first on `PYTHONPATH`; do not modify the author source. CPU installs torch from the CPU index; GPU takes cu121 and installs matching torch. run_smoke_cpu.sh must use verified author Model for one B×96×7 forecast and print forecast_shape=(B, 96, 7), then call observe_periods on author TimesBlock-length data to print selected period/grid metadata.
 
 observe_periods dynamically imports upstream FFT_for_Period; it must not call torch.fft itself. It calculates each grid as the same padded (ceil(total_length / period), period) layout used by author TimesBlock.forward and validates top_k > 0, finite rank-3 input, and positive periods.
 
 - [ ] **Step 4: Run focused tests and real CPU smoke**
 
-Run: PYTHONPATH=reproduction/04_timesnet_official/src pytest -q reproduction/04_timesnet_official/tests/test_runtime_compat.py reproduction/04_timesnet_official/tests/test_period_observation.py
+Run: PYTHONPATH=reproduction/04_timesnet_official/src pytest -q reproduction/04_timesnet_official/tests/test_timesnet_runtime_compat.py reproduction/04_timesnet_official/tests/test_timesnet_period_observation.py
 
 Then run:
     bash reproduction/04_timesnet_official/scripts/fetch_upstream.sh
@@ -149,7 +151,7 @@ Expected: tests PASS; smoke prints a B×96×7 forecast plus author-FFT period/gr
 
 - [ ] **Step 5: Commit**
 
-    git add reproduction/04_timesnet_official/requirements.common.txt reproduction/04_timesnet_official/scripts/create_cpu_env.sh reproduction/04_timesnet_official/scripts/create_gpu_env.sh reproduction/04_timesnet_official/scripts/run_smoke_cpu.sh reproduction/04_timesnet_official/src/timesnet_reproduction reproduction/04_timesnet_official/tests/test_runtime_compat.py reproduction/04_timesnet_official/tests/test_period_observation.py
+    git add reproduction/04_timesnet_official/requirements.common.txt reproduction/04_timesnet_official/compat/sitecustomize.py reproduction/04_timesnet_official/scripts/create_cpu_env.sh reproduction/04_timesnet_official/scripts/create_gpu_env.sh reproduction/04_timesnet_official/scripts/run_smoke_cpu.sh reproduction/04_timesnet_official/src/timesnet_reproduction reproduction/04_timesnet_official/tests/test_timesnet_runtime_compat.py reproduction/04_timesnet_official/tests/test_timesnet_period_observation.py
     git commit -m "feat: add TimesNet smoke environment"
 
 ### Task 3: Strict packaging of untouched author predictions

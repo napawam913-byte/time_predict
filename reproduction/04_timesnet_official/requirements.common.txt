@@ -1,0 +1,14 @@
+# Pinned wrapper runtime for the immutable 2023 TSLib source on Python 3.12.
+# Torch's CPU/CUDA wheel is selected by the environment creation script.
+torch==2.5.1
+numpy==1.26.4
+pandas==2.3.3
+scikit-learn==1.7.2
+matplotlib==3.10.8
+scipy==1.14.1
+einops==0.8.2
+sktime==1.2.0
+reformer-pytorch==1.4.4
+patool==1.12
+sympy==1.13.1
+tqdm==4.67.1
