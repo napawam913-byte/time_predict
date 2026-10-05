@@ -41,4 +41,19 @@ bash reproduction/04_timesnet_official/scripts/create_cpu_env.sh
 bash reproduction/04_timesnet_official/scripts/run_smoke_cpu.sh
 ```
 
-GPU 运行完成后，下一步使用 `compare_ettm1_l96_h96.py` 与 Seasonal Naive、DLinear 做严格标签对齐的比较。该比较器将在本复现外壳完成后提供；不要直接比较作者日志中的单一打印指标。
+## 训练完成后的比较
+
+只在 `predictions.npz` 已生成后运行。比较器会先逐元素检查三个模型的真实标签；不一致时不写入任何指标文件。
+
+```bash
+PYTHONPATH=reproduction/common:reproduction/04_timesnet_official/src \
+reproduction/04_timesnet_official/.venv/bin/python \
+reproduction/04_timesnet_official/scripts/compare_ettm1_l96_h96.py \
+  --timesnet-run reproduction/04_timesnet_official/runs/ettm1_l96_h96_timesnet_seed2021_gpu_YYYYMMDD \
+  --seasonal-naive reproduction/01_dlinear_baseline/runs/ettm1_l96_h96_seasonal_naive_cloud20261003_r2/predictions.npz \
+  --dlinear reproduction/01_dlinear_baseline/runs/ettm1_l96_h96_dlinear_cloud20261003_r2/predictions.npz \
+  --csv DataSet/ETTm1/ETTm1.csv \
+  --output-dir reproduction/04_timesnet_official/comparison
+```
+
+输出包括 JSON、Markdown 指标表和一个原始尺度的定性测试窗口图。不要直接比较作者日志中的单一打印指标。
