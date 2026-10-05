@@ -28,6 +28,12 @@ reproduction/**/runs/
 reproduction/02_autoformer_official/comparison/
 reproduction/03_patchtst_official/comparison/
 
+# TimesNet official-source reproduction artifacts
+reproduction/04_timesnet_official/upstream/
+reproduction/04_timesnet_official/.venv/
+reproduction/04_timesnet_official/runs/
+reproduction/04_timesnet_official/comparison/
+
 # Local Codex bookkeeping
 .agents/
 .codex/

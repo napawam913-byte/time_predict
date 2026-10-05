@@ -1,0 +1,9 @@
+{
+  "repository": "https://github.com/thuml/Time-Series-Library.git",
+  "commit": "2665a3143dae12d1cbcc31ddd396bbff48773bce",
+  "paper": "Wu et al., TimesNet: Temporal 2D-Variation Modeling for General Time Series Analysis, ICLR 2023",
+  "model_source": "models/TimesNet.py",
+  "entrypoint": "run.py",
+  "official_ettm1_script": "scripts/long_term_forecast/ETT_script/TimesNet_ETTm1.sh",
+  "retrieved_for_plan": "2026-10-05"
+}
