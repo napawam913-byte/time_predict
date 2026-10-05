@@ -19,3 +19,9 @@
 该假设在单次 ETTm1 `L=96 → H=96` 运行中得到初步支持：PatchTST 的全局原始尺度 MSE 为 `6.401452`，优于 DLinear `7.320728`（12.56%）与 Seasonal Naive `7.994722`（19.93%），标签逐元素对齐的窗口数为 11425。优势并不在每一个变量上都成立：DLinear 在 HULL、MULL、LULL 三个较平稳通道的单变量 MSE 更低，而 PatchTST 在 HUFL、MUFL、LUFL、OT 上更低，尤其 OT 改善明显。
 
 下一项可证伪假设：若 PatchTST 的优势主要来自较强波动或跨周期模式通道，那么在统一 `L=336` 后，其相对 DLinear 的优势应在 HUFL、MUFL、OT 保持或扩大；若所有通道的优势都消失，则首轮改善可能是短窗口设置、单种子或训练配置造成，而非 patch 表示本身。
+
+## 2026-10-05：TimesNet 首轮结果与下一项假设
+
+TimesNet 的单次官方 ETTm1 `L=96 → H=96` 运行使全局原始尺度 MSE 达到 `6.635150`，优于 DLinear `7.320728`（9.36%）与 Seasonal Naive `7.994722`（17.01%），并与二者的 11425 个测试窗口标签逐元素对齐。这说明在此短历史窗口、固定 seed 下，TimesNet 的多周期二维卷积归纳偏置确实带来了超越强线性基线的增益；但它仍落后于 PatchTST `6.401452`（3.65%）。变量层面并不一致：TimesNet 明显改善 OT（`2.556819` 对 DLinear 的 `5.570372`），却在 HULL、MULL、LUFL 上不优于 DLinear；相比 PatchTST，它仅在 LULL 与 OT 的原始尺度 MSE 更低。
+
+下一项可证伪假设：若 TimesNet 的周期二维建模在长历史下确有独立价值，则当 TimesNet、PatchTST、DLinear 全部改为匹配的 `L=336 → H=96` 且维持同一标签契约时，TimesNet 相对 DLinear 的优势应至少保留，并在 OT/LULL 等通道缩小或反转与 PatchTST 的差距；若其整体排序仍落后 PatchTST、或优势仅留在个别通道，则当前证据只支持“TimesNet 优于线性基线的特定设置”，不支持更强的结构性结论。另行做 `freq=h` 对 `freq=t` 的单因素敏感性实验可检验作者脚本默认时间特征是否影响该排序，但不得与主比较混合。

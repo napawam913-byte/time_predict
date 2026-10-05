@@ -1,5 +1,17 @@
 # 交接
 
+## 当前状态（2026-10-05，TimesNet 已完成）
+
+- TimesNet 官方复现已在 L40 完成 ETTm1 `96→96`：`ettm1_l96_h96_timesnet_seed2021_gpu_20261005`。固定作者 TSLib 提交 `2665a3143dae12d1cbcc31ddd396bbff48773bce`；模型参数为 `d_model=64`、`d_ff=64`、`e_layers=2`、`top_k=5`，作者固定 seed 2021。训练在第 4 epoch 触发 patience 3 的早停。
+- 作者训练产生的 `pred.npy` 与 `true.npy` 已打包为完整 `(11425,96,7)` 预测归档。严格比较器确认它与云端 Seasonal Naive、DLinear 的真实标签逐元素一致；原始尺度 MSE/MAE/RMSE 为 `6.635150/1.316070/2.575878`。
+- TimesNet 的全局原始尺度 MSE 比 DLinear `7.320728` 低 9.36%，比 Seasonal Naive `7.994722` 低 17.01%；但比同一协议、已对齐的 PatchTST `6.401452` 高 3.65%。它相对 DLinear 的最大单变量改善出现在 OT（`2.556819` 对 `5.570372`），而在 HULL、MULL、LUFL 上不占优。
+- 当前结论仅适用于单个作者 seed、`L=96 → H=96`、作者脚本的 `freq=h` 默认时间特征设置。ETTm1 实际为 15 分钟采样；不得将该结果称为论文表格复现，也不能由此宣布 TimesNet 或 PatchTST 的普遍优势。完整指标见云端 `reproduction/04_timesnet_official/comparison/ettm1_l96_h96_initial_metrics.md` 与版本化摘要 `experiment/results.md`。
+- 本地 TimesNet 外壳包含源码固定、兼容环境、CPU 冒烟、GPU 启动、只读导出与严格比较；截至该提交前的完整测试套件为 62 项。
+
+## 下一步（只做这一件）
+
+建立 TimesNet、PatchTST 与 DLinear 的匹配 `L=336 → H=96` 实验，保持数据版本、时间切分、训练段标准化、7 个变量和标签逐元素对齐不变。仅当三个模型都在这一协议下完成后，才判断更长历史窗口是否改变 TimesNet 与 PatchTST 的相对排序；可把 `freq=h` 与 `freq=t` 作为 TimesNet 单独的时间特征敏感性消融，不能混入这一主比较。
+
 ## 当前状态（2026-10-05）
 
 - PatchTST 官方监督版已在 L40 完成 ETTm1 `96→96` 运行：`ettm1_l96_h96_patchtst_seed2021_gpu_20261004_r3`。模型固定官方提交 `204c21efe0b39603ad6e2ca640ef5896646ab1a9`，结果为原始尺度 MSE/MAE `6.401452/1.266859`。
