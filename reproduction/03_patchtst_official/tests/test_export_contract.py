@@ -6,7 +6,10 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+import torch
+from torch.utils.data import DataLoader, TensorDataset
 
+from patchtst_reproduction import export
 from patchtst_reproduction.export import discover_official_artifacts, write_normalized_archive
 
 
@@ -82,3 +85,22 @@ def test_discovery_rejects_absent_or_ambiguous_checkpoint_and_result_directories
     np.save(second_result, np.zeros((1, 2, 2)))
     with pytest.raises(ValueError, match="result"):
         discover_official_artifacts(ambiguous_result_root)
+
+
+def test_complete_test_loader_keeps_the_last_incomplete_official_batch() -> None:
+    """Fair evaluation must retain all windows, unlike upstream's test loader."""
+
+    dataset = TensorDataset(torch.arange(5))
+
+    class Experiment:
+        args = type("Args", (), {"batch_size": 4, "num_workers": 0})()
+
+        @staticmethod
+        def _get_data(flag: str):
+            assert flag == "test"
+            return dataset, DataLoader(dataset, batch_size=4, shuffle=False, drop_last=True)
+
+    loader = export.complete_test_loader(Experiment())
+
+    assert loader.drop_last is False
+    assert torch.cat([batch[0] for batch in loader]).tolist() == [0, 1, 2, 3, 4]

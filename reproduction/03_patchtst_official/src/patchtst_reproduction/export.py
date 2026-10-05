@@ -100,7 +100,7 @@ def export_from_official_run(
     exp_main = _load_official_exp_main(upstream_supervised_dir)
     experiment = exp_main(args)
     _load_checkpoint(experiment, artifacts.checkpoint)
-    _, test_loader = experiment._get_data(flag="test")
+    test_loader = complete_test_loader(experiment)
     prediction, target = _collect_test_windows(experiment, test_loader)
     return write_normalized_archive(archive_path, prediction, target, _columns_for_args(args))
 
@@ -129,6 +129,28 @@ def _load_checkpoint(experiment: Any, checkpoint_path: Path) -> None:
 
     state = torch.load(checkpoint_path, map_location=experiment.device)
     experiment.model.load_state_dict(state)
+
+
+def complete_test_loader(experiment: Any) -> Any:
+    """Build an official-dataset loader that preserves its final partial batch.
+
+    The immutable upstream ``data_provider(..., "test")`` uses
+    ``drop_last=True``. That silently omits the final 33 ETTm1 test windows at
+    batch size 128, so this comparison-only exporter recreates the same test
+    dataset with ``drop_last=False``. Model weights and the official source are
+    not changed.
+    """
+
+    from torch.utils.data import DataLoader
+
+    test_data, _ = experiment._get_data(flag="test")
+    return DataLoader(
+        test_data,
+        batch_size=experiment.args.batch_size,
+        shuffle=False,
+        num_workers=experiment.args.num_workers,
+        drop_last=False,
+    )
 
 
 def _collect_test_windows(experiment: Any, test_loader: Any) -> tuple[np.ndarray, np.ndarray]:
